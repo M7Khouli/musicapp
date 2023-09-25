@@ -4,7 +4,7 @@ const AppError = require('./appError');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    if (file.fieldname === 'song') cb(null, 'uploads');
+    if (file.fieldname === 'song') cb(null, 'public/audio');
     else if (file.fieldname === 'photo') cb(null, 'public/img');
   },
   filename: function (req, file, cb) {
