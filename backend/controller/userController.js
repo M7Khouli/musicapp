@@ -2,7 +2,9 @@ const catchAsync = require('../utils/catchAsync');
 const User = require('../model/userModel');
 
 exports.getUser = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id).populate({ path: 'library' }); // show library for one user
+  const user = await User.findById(req.params.id).select(
+    '-friendRequests -library',
+  ); // show library for one user
   res.status(200).json({
     status: 'success',
     data: user,
@@ -10,10 +12,10 @@ exports.getUser = catchAsync(async (req, res, next) => {
 });
 
 exports.getUserSongs = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.user.id).populate({ path: 'library' });
+  //const user = await User.findById(req.user.id).populate({ path: 'library' });
   res.status(200).json({
     status: 'success',
-    data: user.library,
+    data: req.user.library,
   });
 });
 
@@ -34,5 +36,12 @@ exports.addSongToCloud = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'song successfully added to the cloud !',
+  });
+});
+
+exports.getMe = catchAsync(async (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    data: req.user,
   });
 });

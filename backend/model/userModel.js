@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     unique: [true, 'email already exists !'],
   },
+  friends: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
+  friendRequests: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
   password: {
     type: String,
     required: [true, 'please enter a password'],

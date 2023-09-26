@@ -65,7 +65,11 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  const user = await User.findById(decoded.id);
+  const user = await User.findById(decoded.id).populate([
+    'library',
+    'friends',
+    'friendRequests',
+  ]);
   if (!user)
     return next(new AppError('Unauthorized, user does not exist', 401));
   req.user = user;

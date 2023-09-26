@@ -16,6 +16,7 @@ router
   .route('/library/:id')
   .post(authController.protect, userController.addSongToCloud);
 
+router.route('/me').get(authController.protect, userController.getMe);
 router.get('/:id', userController.getUser);
 
 module.exports = router;
