@@ -42,6 +42,23 @@ exports.acceptFriendRequest = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.rejectFriendRequest = catchAsync(async (req, res, next) => {
+  const receiver = req.user;
+  const { sender } = req.body;
+
+  if (!receiver.friendRequests.includes(sender))
+    return next(new AppError('There is no friend request to this user !', 401));
+
+  await User.findByIdAndUpdate(receiver.id, {
+    $pull: { friendRequests: sender },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Friend request rejected successfully',
+  });
+});
+
 exports.showFriendRequests = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',

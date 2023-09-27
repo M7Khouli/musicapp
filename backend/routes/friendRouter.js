@@ -15,5 +15,8 @@ router
 router
   .route('/requests/accept')
   .post(authController.protect, friendController.acceptFriendRequest);
+router
+  .route('/requests/reject')
+  .post(authController.protect, friendController.rejectFriendRequest);
 
 module.exports = router;
