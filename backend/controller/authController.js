@@ -43,13 +43,13 @@ exports.signup = catchAsync(async (req, res, next) => {
     verificationCode: randomCode,
   });
 
-  sendEmail({
+  await sendEmail({
     email: req.body.email,
     subject: 'SoundScape verification code',
     text: `Your soundScape activation code is : ${randomCode}`,
   });
 
-  res.status(200).json({
+  res.status(201).json({
     status: 'success',
     message:
       'account successfully created and a verification code has been sent.',
@@ -110,7 +110,9 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.checkVerificationCode = catchAsync(async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
+  const user = await User.findOne({ email: req.body.email }).select(
+    '+verificationCode',
+  );
   if (!user) {
     return next(new AppError('Please enter a valid email', 401));
   }
@@ -119,14 +121,54 @@ exports.checkVerificationCode = catchAsync(async (req, res, next) => {
   }
   if (user.verificationCode === req.body.code) {
     user.activated = true;
+    user.verificationCode = undefined;
     await user.save({ validateBeforeSave: false });
-    res.status(200).json({
-      status: 'success',
-      message: 'the account has been activated.',
-    });
+    sendToken(user, 200, res);
   } else {
     return next(
       new AppError('The verification code is wrong, please try again', 401),
     );
   }
+});
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(new AppError('no user exists with this email.', 400));
+  }
+
+  const randomCode = Math.floor(Math.random() * 90000) + 10000;
+  await sendEmail({
+    email: req.body.email,
+    subject: 'SoundScape Password reset code',
+    text: `Your SoundScape Password reset code is : ${randomCode}`,
+  });
+
+  user.passwordResetCode = randomCode;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'a password reset code has been sent !.',
+  });
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({
+    email: req.body.email,
+    passwordResetExpires: { $gt: Date.now() },
+  }).select('+passwordResetCode');
+
+  if (!user || user.passwordResetCode !== req.body.resetCode) {
+    return next(new AppError('expired or invalid password reset code.', 400));
+  }
+  user.password = req.body.password;
+  user.passwordResetCode = undefined;
+  user.passwordResetExpires = undefined;
+  user.verificationCode = undefined;
+  user.activated = true;
+  await user.save({ validateBeforeSave: false });
+  sendToken(user, 200, res);
 });

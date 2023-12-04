@@ -47,7 +47,9 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  verificationCode: String,
+  verificationCode: { type: String, select: false },
+  passwordResetCode: { type: String, select: false },
+  passwordResetExpires: { type: Date, select: false },
 });
 
 userSchema.pre('save', async function (next) {
