@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -9,6 +10,8 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     unique: [true, 'email already exists !'],
+    lowercase: true,
+    validate: [validator.isEmail, 'please enter a valid email !'],
   },
   friends: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
   friendRequests: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
@@ -16,6 +19,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'please enter a password'],
     select: false,
+    minlength: 8,
   },
   passwordConfirm: {
     type: String,
@@ -39,6 +43,11 @@ const userSchema = new mongoose.Schema({
     default: 'user',
     enum: ['user', 'admin', 'moderator'],
   },
+  activated: {
+    type: Boolean,
+    default: false,
+  },
+  verificationCode: String,
 });
 
 userSchema.pre('save', async function (next) {

@@ -1,5 +1,9 @@
 const AppError = require('../utils/appError');
 
+const handelTokenExpireError = () => {
+  return new AppError('Invalid token, token mandate has been expired !', 401);
+};
+
 const handelFileLimitErrorMulter = () => {
   return new AppError('Audio limit of 20mb has been exceeded', 400);
 };
@@ -44,6 +48,7 @@ module.exports = (err, req, res, next) => {
     if (error.name === 'ValidationError')
       error = handleValidationErrorDB(error);
     if (err.code === 'LIMIT_FILE_SIZE') error = handelFileLimitErrorMulter();
+    if (err.name === 'TokenExpiredError') error = handelTokenExpireError();
     sendErrorProd(error, res);
   }
 };

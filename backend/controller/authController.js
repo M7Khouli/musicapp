@@ -5,6 +5,7 @@ const dotEnv = require('dotenv');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const User = require('../model/userModel');
+const sendEmail = require('../utils/email');
 
 const singToken = (id) => {
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -33,13 +34,26 @@ const sendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+  const randomCode = Math.floor(Math.random() * 90000) + 10000;
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    verificationCode: randomCode,
   });
-  sendToken(newUser, 201, res);
+
+  sendEmail({
+    email: req.body.email,
+    subject: 'SoundScape verification code',
+    text: `Your soundScape activation code is : ${randomCode}`,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message:
+      'account successfully created and a verification code has been sent.',
+  });
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -51,6 +65,14 @@ exports.login = catchAsync(async (req, res, next) => {
   );
   if (!user || !(await user.correctPassword(req.body.password, user.password)))
     return next(new AppError('incorrect email or password', 400));
+  if (!user.activated) {
+    return next(
+      new AppError(
+        'This user has not been activated , please activate your account',
+        401,
+      ),
+    );
+  }
 
   sendToken(user, 200, res);
 });
@@ -86,3 +108,25 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
+
+exports.checkVerificationCode = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('Please enter a valid email', 401));
+  }
+  if (user.activated) {
+    return next(new AppError('User already has been activated !', 401));
+  }
+  if (user.verificationCode === req.body.code) {
+    user.activated = true;
+    await user.save({ validateBeforeSave: false });
+    res.status(200).json({
+      status: 'success',
+      message: 'the account has been activated.',
+    });
+  } else {
+    return next(
+      new AppError('The verification code is wrong, please try again', 401),
+    );
+  }
+});
