@@ -1,7 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
 
 const app = express();
+
+app.use(cors());
 
 const globalErrorHandler = require('./controller/errorController');
 const AppError = require('./utils/appError');
