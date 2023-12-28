@@ -1,5 +1,7 @@
 const fs = require('fs').promises;
+const fss = require('fs');
 const path = require('path');
+const mm = require('music-metadata');
 
 const Song = require('../model/songModel');
 const catchAsync = require('../utils/catchAsync');
@@ -12,6 +14,10 @@ exports.createSong = catchAsync(async (req, res, next) => {
     req.body.directory = req.files.song[0].path;
     req.body.addedBy = req.user.id;
     if (req.body.photo) req.body.photo = req.files.photo[0].path;
+    const metadata = await mm.parseFile(req.body.directory);
+    const minutes = Math.floor(metadata.format.duration / 60);
+    req.body.length =
+      minutes + ':' + Math.floor(metadata.format.duration - minutes * 60);
     const newSong = await Song.create(req.body);
 
     //hide fingerprint
@@ -42,6 +48,18 @@ exports.getAllSongs = catchAsync(async (req, res, next) => {
     status: 'success',
     data: songs,
   });
+});
+
+exports.playSong = catchAsync(async (req, res, next) => {
+  const song = await Song.findById(req.params.songID);
+  //check if the user authorized to hear the songs
+  if (!song.public) {
+    if (req.user.id !== song.addedBy)
+      return next(new AppError('unauthorized to access this song', 401));
+  }
+  const songPath = song.directory;
+  const stream = fss.createReadStream(songPath);
+  stream.pipe(res);
 });
 
 /* exports.updateSong = catchAsync(async (req, res, next) => {

@@ -8,6 +8,10 @@ const handelFileLimitErrorMulter = () => {
   return new AppError('Audio limit of 20mb has been exceeded', 400);
 };
 
+const handelExistSongTitleDB = () => {
+  return new AppError('Song title already exists in database !', 400);
+};
+
 const handleValidationErrorDB = (err) => {
   const errors = Object.values(err.errors).map((el) => el.message);
   const message = `Invalid data. ${errors.join('. ')}`;
@@ -49,6 +53,7 @@ module.exports = (err, req, res, next) => {
       error = handleValidationErrorDB(error);
     if (err.code === 'LIMIT_FILE_SIZE') error = handelFileLimitErrorMulter();
     if (err.name === 'TokenExpiredError') error = handelTokenExpireError();
+    if (err.code === 11000) error = handelExistSongTitleDB();
     sendErrorProd(error, res);
   }
 };

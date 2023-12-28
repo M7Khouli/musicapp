@@ -21,6 +21,10 @@ router
   )
   .get(songController.getAllSongs);
 
+router
+  .route('/play/:songID')
+  .get(authController.protect, songController.playSong);
+
 router.post('/:id', [authController.protect, userController.addSongFromCloud]);
 
 module.exports = router;

@@ -47,6 +47,7 @@ const songSchema = new mongoose.Schema({
     ref: 'Artist',
     required: [true, 'please enter an artist !'],
   },
+  length: String,
   public: {
     type: Boolean,
     default: false,
