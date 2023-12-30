@@ -1,4 +1,4 @@
-const fpcalc = require('fpcalc');
+const fpcalc = require('./fpcalc/index');
 
 // Example audio fingerprints represented as strings
 exports.getSimilarity = function (fingerprint1, fingerprint2) {
