@@ -62,6 +62,29 @@ exports.playSong = catchAsync(async (req, res, next) => {
   stream.pipe(res);
 });
 
+exports.deleteSong = catchAsync(async (req, res, next) => {
+  const song = await Song.findById(req.params.id);
+  if (song.addedBy !== req.user.id) {
+    return next(new AppError('Unauthorized to delete this song', 401));
+  }
+  const users = await User.find();
+  for (let i = 0; i < users.length; i++) {
+    for (let j = 0; j < users[i].library.length; j++) {
+      if (users[i].library[j] == song.id) {
+        await User.updateOne(
+          { _id: users[i].id },
+          { $pull: { library: song.id } },
+        );
+      }
+    }
+  }
+  await Song.findByIdAndDelete(req.params.id);
+  res.status(200).json({
+    status: 'success',
+    message: 'song has been deleted successfully',
+  });
+});
+
 /* exports.updateSong = catchAsync(async (req, res, next) => {
   const ogSong = Song.findById(req.params.id);
   //if the user didn't add this song originally then he is unauthorized

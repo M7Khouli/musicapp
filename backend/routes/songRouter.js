@@ -25,6 +25,9 @@ router
   .route('/play/:songID')
   .get(authController.protect, songController.playSong);
 
-router.post('/:id', [authController.protect, userController.addSongFromCloud]);
+router
+  .route('/:id')
+  .post([authController.protect, userController.addSongFromCloud])
+  .delete(authController.protect, songController.deleteSong);
 
 module.exports = router;

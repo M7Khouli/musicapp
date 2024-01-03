@@ -12,6 +12,10 @@ const handelExistSongTitleDB = () => {
   return new AppError('Song title already exists in database !', 400);
 };
 
+const handleTokenInvalidError = () => {
+  return new AppError('invalid token, please re login and try later.', 401);
+};
+
 const handleValidationErrorDB = (err) => {
   const errors = Object.values(err.errors).map((el) => el.message);
   const message = `Invalid data. ${errors.join('. ')}`;
@@ -54,6 +58,7 @@ module.exports = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') error = handelFileLimitErrorMulter();
     if (err.name === 'TokenExpiredError') error = handelTokenExpireError();
     if (err.code === 11000) error = handelExistSongTitleDB();
+    if (err.name === 'JsonWebTokenError') error = handleTokenInvalidError();
     sendErrorProd(error, res);
   }
 };
