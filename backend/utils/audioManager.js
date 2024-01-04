@@ -20,7 +20,7 @@ const fingerPrint = function (audio) {
   return new Promise((resolve, reject) => {
     fpcalc(audio, { raw: true }, function (err, result) {
       if (err) reject(err);
-      resolve(result.fingerprint);
+      resolve(result);
     });
   });
 };

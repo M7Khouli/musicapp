@@ -21,9 +21,7 @@ router
   )
   .get(songController.getAllSongs);
 
-router
-  .route('/play/:songID')
-  .get(authController.protect, songController.playSong);
+router.route('/play/:songID').get(songController.playSong);
 
 router
   .route('/:id')

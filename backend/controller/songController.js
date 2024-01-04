@@ -14,12 +14,8 @@ exports.createSong = catchAsync(async (req, res, next) => {
     req.body.directory = req.files.song[0].path;
     req.body.addedBy = req.user.id;
     if (req.body.photo) req.body.photo = req.files.photo[0].path;
-    const metadata = await mm.parseFile(req.body.directory);
-    const minutes = Math.floor(metadata.format.duration / 60);
-    req.body.length =
-      minutes + ':' + Math.floor(metadata.format.duration - minutes * 60);
-    const newSong = await Song.create(req.body);
 
+    const newSong = await Song.create(req.body);
     //hide fingerprint
     newSong.fingerprint = undefined;
     //push song to user library
@@ -52,11 +48,17 @@ exports.getAllSongs = catchAsync(async (req, res, next) => {
 
 exports.playSong = catchAsync(async (req, res, next) => {
   const song = await Song.findById(req.params.songID);
+  const ext = path.extname(song.directory).slice(1);
+  res.setHeader('Content-Type', `audio/${ext}`);
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${song.title}.${ext}"`,
+  );
   //check if the user authorized to hear the songs
-  if (!song.public) {
+  /* if (!song.public) {
     if (req.user.id !== song.addedBy)
       return next(new AppError('unauthorized to access this song', 401));
-  }
+  }*/
   const songPath = song.directory;
   const stream = fss.createReadStream(songPath);
   stream.pipe(res);

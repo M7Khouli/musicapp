@@ -64,10 +64,11 @@ const songSchema = new mongoose.Schema({
 
 //add fingerprint to song
 songSchema.pre('save', async function (next) {
-  this.fingerprint = Buffer.from(
-    await audioManager.getFingerPrint(`./${this.directory}`),
-    'base64',
-  );
+  const fingerPrint = await audioManager.getFingerPrint(`./${this.directory}`);
+  this.fingerprint = Buffer.from(fingerPrint.fingerprint, 'base64');
+  const minutes = Math.floor(fingerPrint.duration / 60);
+  const seconds = Math.round(fingerPrint.duration % 60);
+  this.length = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   next();
 });
 
