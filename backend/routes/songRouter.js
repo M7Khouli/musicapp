@@ -21,7 +21,12 @@ router
   )
   .get(songController.getAllSongs);
 
-router.route('/play/:songID').get(songController.playSong);
+router
+  .route('/play/:songID')
+  .get(authController.protect, songController.playSong);
+router
+  .route('/photo/:songID')
+  .get(authController.protect, songController.getSongImage);
 
 router
   .route('/:id')
