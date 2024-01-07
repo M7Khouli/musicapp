@@ -1,18 +1,15 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 
-const artistSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'please enter an artist name'],
-      unique: [true, 'artist already exists !'],
-    },
-    photo: String,
-    slug: String,
+const artistSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'please enter an artist name'],
+    unique: [true, 'artist already exists !'],
   },
-  { toJSON: { virtuals: true }, toObject: { virtuals: true } },
-);
+  photo: String,
+  slug: String,
+});
 
 //add songs to every artist
 artistSchema.virtual('songs', {

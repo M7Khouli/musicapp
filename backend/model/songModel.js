@@ -95,6 +95,11 @@ songSchema.pre('save', function (next) {
   next();
 });
 
+songSchema.pre('find', function (next) {
+  this.populate('artist', 'name');
+  next();
+});
+
 const Song = mongoose.model('Song', songSchema);
 
 module.exports = Song;
