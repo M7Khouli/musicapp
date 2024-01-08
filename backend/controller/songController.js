@@ -39,7 +39,11 @@ exports.createSong = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllSongs = catchAsync(async (req, res, next) => {
-  const songs = await Song.find({ public: { $eq: true } }); //exclude private songs to keep privacy
+  const userLibraryIds = req.user.library.map((song) => song.id);
+  const songs = await Song.find({ public: { $eq: true } }).lean(); //exclude private songs to keep privacy
+  songs.forEach((song) => {
+    song.inLibrary = userLibraryIds.includes(song._id.toString());
+  });
   res.status(200).json({
     status: 'success',
     data: songs,
