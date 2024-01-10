@@ -40,6 +40,7 @@ exports.createSong = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllSongs = catchAsync(async (req, res, next) => {
+  req.user = JSON.parse(JSON.stringify(req.user));
   const userLibraryIds = req.user.library.map((song) => song._id.toString());
   const features = new APIFeatures(
     Song.find({ public: { $eq: true } }).lean(),

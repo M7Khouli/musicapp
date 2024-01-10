@@ -13,6 +13,7 @@ exports.getUser = catchAsync(async (req, res, next) => {
 
 exports.getUserSongs = catchAsync(async (req, res, next) => {
   //const user = await User.findById(req.user.id).populate({ path: 'library' });
+  req.user = JSON.parse(JSON.stringify(req.user));
   const userLibrary = req.user.library;
   const userFavoriteIds = req.user.favorite.map((song) => song._id.toString());
   userLibrary.forEach((song) => {
