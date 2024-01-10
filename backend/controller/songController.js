@@ -7,6 +7,7 @@ const Song = require('../model/songModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Artist = require('../model/artistModel');
+const APIFeatures = require('../utils/apiFeatures');
 const User = require('../model/userModel');
 
 exports.createSong = catchAsync(async (req, res, next) => {
@@ -39,8 +40,12 @@ exports.createSong = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllSongs = catchAsync(async (req, res, next) => {
-  const userLibraryIds = req.user.library.map((song) => song.id);
-  const songs = await Song.find({ public: { $eq: true } }).lean(); //exclude private songs to keep privacy
+  const userLibraryIds = req.user.library.map((song) => song._id.toString());
+  const features = new APIFeatures(
+    Song.find({ public: { $eq: true } }).lean(),
+    req.query,
+  ).pagination();
+  const songs = await features.query;
   songs.forEach((song) => {
     song.inLibrary = userLibraryIds.includes(song._id.toString());
   });
@@ -97,6 +102,10 @@ exports.deleteSong = catchAsync(async (req, res, next) => {
         await User.updateOne(
           { _id: users[i].id },
           { $pull: { library: song.id } },
+        );
+        await User.updateOne(
+          { _id: users[i].id },
+          { $pull: { favorite: song.id } },
         );
       }
     }

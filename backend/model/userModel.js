@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema({
       ref: 'Song',
     },
   ],
+  favorite: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Song',
+    },
+  ],
   role: {
     type: String,
     default: 'user',

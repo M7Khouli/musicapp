@@ -16,8 +16,17 @@ router
   .get(authController.protect, userController.getUserSongs);
 
 router
+  .route('/library/favorite')
+  .get(authController.protect, userController.getFavorite);
+router
+  .route('/library/favorite/:id')
+  .post(authController.protect, userController.addSongToFavorite)
+  .delete(authController.protect, userController.removeSongFromFavorite);
+
+router
   .route('/library/:id')
-  .post(authController.protect, userController.addSongToCloud);
+  .post(authController.protect, userController.addSongFromCloud)
+  .delete(authController.protect, userController.removeSongFromLibrary);
 
 router.route('/me').get(authController.protect, userController.getMe);
 router.get('/:id', userController.getUser);
