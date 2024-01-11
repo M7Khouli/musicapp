@@ -42,6 +42,7 @@ exports.createSong = catchAsync(async (req, res, next) => {
 exports.getAllSongs = catchAsync(async (req, res, next) => {
   req.user = JSON.parse(JSON.stringify(req.user));
   const userLibraryIds = req.user.library.map((song) => song._id.toString());
+  const userFavoriteIds = req.user.favorite.map((song) => song._id.toString());
   const features = new APIFeatures(
     Song.find({ public: { $eq: true } }).lean(),
     req.query,
@@ -49,10 +50,28 @@ exports.getAllSongs = catchAsync(async (req, res, next) => {
   const songs = await features.query;
   songs.forEach((song) => {
     song.inLibrary = userLibraryIds.includes(song._id.toString());
+    song.inFavorite = userFavoriteIds.includes(song._id.toString());
   });
   res.status(200).json({
     status: 'success',
     data: songs,
+  });
+});
+
+exports.getRandomSong = catchAsync(async (req, res, next) => {
+  const randomSong = await Song.aggregate([
+    { $match: { public: true } },
+    { $sample: { size: 1 } },
+    {
+      $project: {
+        fingerprint: 0,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: randomSong,
   });
 });
 

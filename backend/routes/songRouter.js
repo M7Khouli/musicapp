@@ -22,6 +22,9 @@ router
   .get(authController.protect, songController.getAllSongs);
 
 router
+  .route('/random')
+  .get(authController.protect, songController.getRandomSong);
+router
   .route('/play/:songID')
   .get(authController.protect, songController.playSong);
 router
