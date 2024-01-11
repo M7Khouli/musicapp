@@ -1,4 +1,6 @@
+const mongoose = require('mongoose');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 const User = require('../model/userModel');
 
 exports.getUser = catchAsync(async (req, res, next) => {
@@ -26,6 +28,10 @@ exports.getUserSongs = catchAsync(async (req, res, next) => {
 });
 
 exports.addSongFromCloud = catchAsync(async (req, res, next) => {
+  const userLibraryIds = req.user.library.map((song) => song._id.toString());
+  if (userLibraryIds.includes(req.params.id)) {
+    return next(new AppError('Song already exists in library', 400));
+  }
   await User.findByIdAndUpdate(req.user.id, {
     $push: { library: req.params.id },
   });
@@ -36,6 +42,20 @@ exports.addSongFromCloud = catchAsync(async (req, res, next) => {
 });
 
 exports.removeSongFromLibrary = catchAsync(async (req, res, next) => {
+  let isRemoveAble = 0;
+  req.user.library.forEach((song) => {
+    if (song._id.toString() === req.params.id) {
+      if (song.public === true) isRemoveAble = 1;
+    }
+  });
+  if (!isRemoveAble) {
+    return next(
+      new AppError(
+        'The song is not in your library or you are trying to remove a private song',
+        400,
+      ),
+    );
+  }
   await User.findByIdAndUpdate(req.user.id, {
     $pull: { library: req.params.id },
   });
@@ -59,6 +79,10 @@ exports.addSongToCloud = catchAsync(async (req, res, next) => {
 });
 
 exports.addSongToFavorite = catchAsync(async (req, res, next) => {
+  const userFavoriteIds = req.user.favorite.map((song) => song._id.toString());
+  if (userFavoriteIds.includes(req.params.id)) {
+    return next(new AppError('Song already exists in favorite', 400));
+  }
   await User.findByIdAndUpdate(req.user.id, {
     $push: { favorite: req.params.id },
   });
